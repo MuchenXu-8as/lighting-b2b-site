@@ -18,6 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ImagePlus, Trash2 } from "lucide-react";
 
+import { MAX_PRODUCT_IMAGES } from "@/lib/product-images";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ProductImage } from "@/lib/types";
 
@@ -77,6 +78,8 @@ export function ProductImageManager({
   const [message, setMessage] = useState("");
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const sensors = useSensors(useSensor(PointerSensor));
+  const remainingSlots = MAX_PRODUCT_IMAGES - images.length;
+  const uploadDisabled = busy || remainingSlots <= 0;
 
   async function persistOrder(nextImages: ProductImage[]) {
     await Promise.all(
@@ -105,12 +108,30 @@ export function ProductImageManager({
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
 
+    if (files.length > remainingSlots) {
+      setMessage(
+        remainingSlots > 0
+          ? `当前还能上传 ${remainingSlots} 张图片，每个产品最多 ${MAX_PRODUCT_IMAGES} 张。`
+          : `每个产品最多上传 ${MAX_PRODUCT_IMAGES} 张图片。`,
+      );
+      event.target.value = "";
+      return;
+    }
+
+    if (files.some((file) => !file.type.startsWith("image/"))) {
+      setMessage("只能上传图片文件。");
+      event.target.value = "";
+      return;
+    }
+
     setBusy(true);
     setMessage("");
+    let nextImages = images;
 
-    for (const file of files) {
-      const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-");
-      const path = `${productId}/${Date.now()}-${safeName}`;
+    for (const [index, file] of files.entries()) {
+      const safeName =
+        file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-") || "image";
+      const path = `${productId}/${Date.now()}-${index}-${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("product-images")
         .upload(path, file);
@@ -131,7 +152,7 @@ export function ProductImageManager({
           image_url: publicUrl.publicUrl,
           storage_path: path,
           alt_en: file.name,
-          sort_order: images.length + 1,
+          sort_order: nextImages.length + 1,
         })
         .select("*")
         .single();
@@ -139,7 +160,8 @@ export function ProductImageManager({
       if (error || !data) {
         setMessage(error?.message || "图片记录保存失败");
       } else {
-        setImages((current) => [...current, data]);
+        nextImages = [...nextImages, data];
+        setImages(nextImages);
       }
     }
 
@@ -177,19 +199,25 @@ export function ProductImageManager({
         <div>
           <h2 className="text-lg font-semibold">产品多图</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            支持一次上传多张，拖拽图片即可调整前台展示顺序。
+            每个产品最多 {MAX_PRODUCT_IMAGES} 张，拖拽图片即可调整前台展示顺序。
           </p>
         </div>
-        <label className="focus-ring inline-flex h-10 cursor-pointer items-center gap-2 bg-zinc-950 px-4 text-sm font-semibold text-white">
+        <label
+          className={`focus-ring inline-flex h-10 items-center gap-2 px-4 text-sm font-semibold ${
+            uploadDisabled
+              ? "cursor-not-allowed bg-zinc-200 text-zinc-500"
+              : "cursor-pointer bg-zinc-950 text-white"
+          }`}
+        >
           <ImagePlus size={16} />
-          {busy ? "处理中..." : "上传图片"}
+          {busy ? "处理中..." : remainingSlots <= 0 ? "已达 5 张" : "上传图片"}
           <input
             type="file"
             multiple
             accept="image/*"
             className="sr-only"
             onChange={handleUpload}
-            disabled={busy}
+            disabled={uploadDisabled}
           />
         </label>
       </div>

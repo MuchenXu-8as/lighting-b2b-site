@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { MAX_PRODUCT_IMAGES } from "@/lib/product-images";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { inquiryStatuses, InquiryStatus, ProductStatus } from "@/lib/types";
@@ -29,6 +30,16 @@ function checkbox(formData: FormData, name: string) {
 function numberValue(formData: FormData, name: string, fallback = 100) {
   const parsed = Number(value(formData, name));
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function productImageFiles(formData: FormData) {
+  return formData
+    .getAll("images")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+}
+
+function safeFileName(fileName: string) {
+  return fileName.toLowerCase().replace(/[^a-z0-9.]+/g, "-") || "image";
 }
 
 function redirectWithError(path: string, message: string): never {
@@ -145,19 +156,19 @@ export async function saveSettingsAction(formData: FormData) {
     company_name: value(formData, "company_name"),
     logo_url: nullable(formData, "logo_url"),
     hero_title_en: value(formData, "hero_title_en"),
-    hero_title_ru: nullable(formData, "hero_title_ru"),
+    hero_title_ru: null,
     hero_subtitle_en: value(formData, "hero_subtitle_en"),
-    hero_subtitle_ru: nullable(formData, "hero_subtitle_ru"),
+    hero_subtitle_ru: null,
     about_title_en: value(formData, "about_title_en"),
-    about_title_ru: nullable(formData, "about_title_ru"),
+    about_title_ru: null,
     about_body_en: value(formData, "about_body_en"),
-    about_body_ru: nullable(formData, "about_body_ru"),
+    about_body_ru: null,
     contact_email: value(formData, "contact_email"),
     contact_phone: nullable(formData, "contact_phone"),
     contact_address_en: nullable(formData, "contact_address_en"),
-    contact_address_ru: nullable(formData, "contact_address_ru"),
+    contact_address_ru: null,
     footer_tagline_en: nullable(formData, "footer_tagline_en"),
-    footer_tagline_ru: nullable(formData, "footer_tagline_ru"),
+    footer_tagline_ru: null,
     socials,
   };
 
@@ -180,9 +191,9 @@ export async function saveCategoryAction(formData: FormData) {
   const payload = {
     slug: value(formData, "slug"),
     name_en: value(formData, "name_en"),
-    name_ru: nullable(formData, "name_ru"),
+    name_ru: null,
     description_en: nullable(formData, "description_en"),
-    description_ru: nullable(formData, "description_ru"),
+    description_ru: null,
     sort_order: numberValue(formData, "sort_order"),
     is_active: checkbox(formData, "is_active"),
   };
@@ -218,10 +229,25 @@ export async function deleteCategoryAction(formData: FormData) {
 export async function saveProductAction(formData: FormData) {
   const supabase = await requireAdminClient();
   const id = value(formData, "id");
+  const imageFiles = productImageFiles(formData);
   const status = value(formData, "status") as ProductStatus;
   const normalizedStatus: ProductStatus =
     status === "published" ? "published" : "draft";
   let specs = {};
+
+  if (imageFiles.length > MAX_PRODUCT_IMAGES) {
+    redirectWithError(
+      id ? `/admin/products/${id}` : "/admin/products/new",
+      `每个产品最多上传 ${MAX_PRODUCT_IMAGES} 张图片。`,
+    );
+  }
+
+  if (imageFiles.some((file) => !file.type.startsWith("image/"))) {
+    redirectWithError(
+      id ? `/admin/products/${id}` : "/admin/products/new",
+      "只能上传图片文件。",
+    );
+  }
 
   try {
     specs = value(formData, "specs") ? JSON.parse(value(formData, "specs")) : {};
@@ -237,11 +263,11 @@ export async function saveProductAction(formData: FormData) {
     sku: value(formData, "sku"),
     slug: value(formData, "slug"),
     name_en: value(formData, "name_en"),
-    name_ru: nullable(formData, "name_ru"),
+    name_ru: null,
     summary_en: nullable(formData, "summary_en"),
-    summary_ru: nullable(formData, "summary_ru"),
+    summary_ru: null,
     description_en: nullable(formData, "description_en"),
-    description_ru: nullable(formData, "description_ru"),
+    description_ru: null,
     specs,
     status: normalizedStatus,
     is_featured: checkbox(formData, "is_featured"),
@@ -265,6 +291,37 @@ export async function saveProductAction(formData: FormData) {
 
   if (error || !data) {
     redirectWithError("/admin/products/new", error?.message || "产品创建失败");
+  }
+
+  for (const [index, file] of imageFiles.entries()) {
+    const path = `${data.id}/${Date.now()}-${index}-${safeFileName(file.name)}`;
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, {
+        contentType: file.type || undefined,
+      });
+
+    if (uploadError) {
+      redirectWithError(`/admin/products/${data.id}`, uploadError.message);
+    }
+
+    const { data: publicUrl } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(path);
+
+    const { error: imageError } = await supabase.from("product_images").insert({
+      product_id: data.id,
+      image_url: publicUrl.publicUrl,
+      storage_path: path,
+      alt_en: file.name,
+      alt_ru: null,
+      sort_order: index + 1,
+    });
+
+    if (imageError) {
+      await supabase.storage.from("product-images").remove([path]);
+      redirectWithError(`/admin/products/${data.id}`, imageError.message);
+    }
   }
 
   revalidatePath("/");

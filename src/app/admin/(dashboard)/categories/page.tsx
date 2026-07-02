@@ -20,7 +20,7 @@ export default async function CategoriesPage({
     <div>
       <h1 className="text-2xl font-semibold">分类管理</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        分类会用于前台产品筛选，英文为主，俄文可为空。
+        分类会用于前台产品筛选，俄文页面会自动沿用英文分类名称。
       </p>
 
       {notices.saved || notices.deleted ? (
@@ -39,7 +39,6 @@ export default async function CategoriesPage({
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
           <input required name="slug" placeholder="slug" className="focus-ring h-11 border border-zinc-300 px-3" />
           <input required name="name_en" placeholder="英文名称" className="focus-ring h-11 border border-zinc-300 px-3" />
-          <input name="name_ru" placeholder="俄文名称" className="focus-ring h-11 border border-zinc-300 px-3" />
           <input name="description_en" placeholder="英文描述" className="focus-ring h-11 border border-zinc-300 px-3 lg:col-span-2" />
           <input name="sort_order" type="number" placeholder="排序" className="focus-ring h-11 border border-zinc-300 px-3" />
           <label className="flex items-center gap-3 text-sm">
@@ -64,9 +63,7 @@ export default async function CategoriesPage({
             <div className="grid gap-4 lg:grid-cols-3">
               <input required name="slug" defaultValue={category.slug} className="focus-ring h-11 border border-zinc-300 px-3" />
               <input required name="name_en" defaultValue={category.name_en} className="focus-ring h-11 border border-zinc-300 px-3" />
-              <input name="name_ru" defaultValue={category.name_ru || ""} className="focus-ring h-11 border border-zinc-300 px-3" />
               <input name="description_en" defaultValue={category.description_en || ""} className="focus-ring h-11 border border-zinc-300 px-3" />
-              <input name="description_ru" defaultValue={category.description_ru || ""} className="focus-ring h-11 border border-zinc-300 px-3" />
               <input name="sort_order" type="number" defaultValue={category.sort_order} className="focus-ring h-11 border border-zinc-300 px-3" />
               <label className="flex items-center gap-3 text-sm">
                 <input type="checkbox" name="is_active" defaultChecked={category.is_active} />

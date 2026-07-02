@@ -5,8 +5,8 @@
 ## 功能
 
 - 前台：英文/俄文首页、产品列表、产品详情、About、Contact、询盘提交。
-- 多语言：英文为主，俄文字段为空时自动回退英文。
-- 后台：登录、修改密码、首页内容编辑、分类管理、产品上传/编辑、产品多图上传和拖拽排序、询盘状态跟进。
+- 多语言：英文为主，俄文前台自动回退英文内容，后台无需录入俄文。
+- 后台：登录、修改密码、首页内容编辑、分类管理、产品上传/编辑、每个产品最多 5 张图片上传和拖拽排序、询盘状态跟进。
 - Supabase：Postgres 数据表、Storage bucket、RLS 权限策略。
 - 部署：适合 GitHub 代码托管 + Vercel 自动部署。
 
@@ -66,8 +66,8 @@ RLS 已在 migration 中开启：
 主要页面：
 
 - `/admin/products`：产品列表、删除、进入编辑。
-- `/admin/products/new`：新增产品。
-- `/admin/products/[id]`：编辑产品、上传多图、拖拽排序。
+- `/admin/products/new`：新增产品，可同时选择本地产品图片。
+- `/admin/products/[id]`：编辑产品、上传多图、拖拽排序，每个产品最多 5 张图片。
 - `/admin/categories`：分类新增、编辑、排序、启用/停用。
 - `/admin/inquiries`：询盘状态切换和备注。
 - `/admin/settings`：logo、公司名称、首页、About、Contact、页脚内容、管理员密码修改。

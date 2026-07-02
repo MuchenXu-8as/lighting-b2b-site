@@ -20,7 +20,7 @@ export default async function SettingsPage({
       <div>
         <h1 className="text-2xl font-semibold">首页内容与站点设置</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          管理 logo、公司名称、首页主文案、About 和 Contact。
+          管理 logo、公司名称、首页主文案、About 和 Contact。俄文页面会自动沿用英文内容。
         </p>
       </div>
       {notices.saved ? (
@@ -54,33 +54,17 @@ export default async function SettingsPage({
             首页标题 EN
             <input required name="hero_title_en" defaultValue={settings.hero_title_en} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
           </label>
-          <label className="text-sm font-medium text-zinc-700">
-            首页标题 RU
-            <input name="hero_title_ru" defaultValue={settings.hero_title_ru || ""} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
-          </label>
           <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
             首页副标题 EN
             <textarea required name="hero_subtitle_en" rows={3} defaultValue={settings.hero_subtitle_en} className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2" />
-          </label>
-          <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
-            首页副标题 RU
-            <textarea name="hero_subtitle_ru" rows={3} defaultValue={settings.hero_subtitle_ru || ""} className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2" />
           </label>
           <label className="text-sm font-medium text-zinc-700">
             About 标题 EN
             <input required name="about_title_en" defaultValue={settings.about_title_en} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
           </label>
-          <label className="text-sm font-medium text-zinc-700">
-            About 标题 RU
-            <input name="about_title_ru" defaultValue={settings.about_title_ru || ""} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
-          </label>
           <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
             About 内容 EN
             <textarea required name="about_body_en" rows={6} defaultValue={settings.about_body_en} className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2" />
-          </label>
-          <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
-            About 内容 RU
-            <textarea name="about_body_ru" rows={6} defaultValue={settings.about_body_ru || ""} className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2" />
           </label>
           <label className="text-sm font-medium text-zinc-700">
             联系邮箱
@@ -95,16 +79,8 @@ export default async function SettingsPage({
             <input name="contact_address_en" defaultValue={settings.contact_address_en || ""} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
           </label>
           <label className="text-sm font-medium text-zinc-700">
-            地址 RU
-            <input name="contact_address_ru" defaultValue={settings.contact_address_ru || ""} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
-          </label>
-          <label className="text-sm font-medium text-zinc-700">
             页脚标语 EN
             <input name="footer_tagline_en" defaultValue={settings.footer_tagline_en || ""} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
-          </label>
-          <label className="text-sm font-medium text-zinc-700">
-            页脚标语 RU
-            <input name="footer_tagline_ru" defaultValue={settings.footer_tagline_ru || ""} className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3" />
           </label>
           <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
             社媒链接 JSON

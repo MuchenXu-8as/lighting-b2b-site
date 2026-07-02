@@ -1,6 +1,7 @@
 import { Save } from "lucide-react";
 
 import { saveProductAction } from "@/app/admin/actions";
+import { ProductCreateImageField } from "@/components/admin/product-create-image-field";
 import { Category, ProductWithRelations } from "@/lib/types";
 
 function textValue(value: string | null | undefined) {
@@ -15,7 +16,11 @@ export function ProductForm({
   categories: Category[];
 }) {
   return (
-    <form action={saveProductAction} className="border border-zinc-200 bg-white p-5">
+    <form
+      action={saveProductAction}
+      encType="multipart/form-data"
+      className="border border-zinc-200 bg-white p-5"
+    >
       {product ? <input type="hidden" name="id" value={product.id} /> : null}
       <div className="grid gap-5 lg:grid-cols-2">
         <label className="text-sm font-medium text-zinc-700">
@@ -71,14 +76,6 @@ export function ProductForm({
             className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3"
           />
         </label>
-        <label className="text-sm font-medium text-zinc-700">
-          俄文名称
-          <input
-            name="name_ru"
-            defaultValue={textValue(product?.name_ru)}
-            className="focus-ring mt-2 h-11 w-full border border-zinc-300 px-3"
-          />
-        </label>
         <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
           英文摘要
           <textarea
@@ -89,29 +86,11 @@ export function ProductForm({
           />
         </label>
         <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
-          俄文摘要
-          <textarea
-            name="summary_ru"
-            rows={3}
-            defaultValue={textValue(product?.summary_ru)}
-            className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
           英文详情
           <textarea
             name="description_en"
             rows={6}
             defaultValue={textValue(product?.description_en)}
-            className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm font-medium text-zinc-700 lg:col-span-2">
-          俄文详情
-          <textarea
-            name="description_ru"
-            rows={6}
-            defaultValue={textValue(product?.description_ru)}
             className="focus-ring mt-2 w-full border border-zinc-300 px-3 py-2"
           />
         </label>
@@ -142,6 +121,7 @@ export function ProductForm({
           />
           首页推荐
         </label>
+        {!product ? <ProductCreateImageField /> : null}
       </div>
       <button
         type="submit"
